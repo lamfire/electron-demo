@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'">
+    <title>Electron Terminal</title>
+  </head>
+  <body>
+    <!-- index.html -->
+    <input type="text" id="command" placeholder="输入命令" value="ping 163.com">
+    <button id="run-command">run</button>
+    <pre id="output"></pre>
+    <script src="js/renderer.js"></script>
+  </body>
+</html>
