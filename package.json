@@ -10,7 +10,6 @@
     "appId": "com.linfan.demo",
     "productName": "dome-terminal",
     "files": [
-      "dist/**/*",
       "js/**/*",
       "node_modules/**/*",
       "main.js",
