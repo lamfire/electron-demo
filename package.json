@@ -11,17 +11,17 @@
     "productName": "dome-terminal",
     "files": [
       "dist/**/*",
+      "js/**/*",
       "node_modules/**/*",
       "main.js",
       "preload.js",
-      "index.html",
-      "renderer.js"
+      "index.html"
     ],
     "mac": {
       "target": "dmg"
     },
     "win": {
-      "target": "nsis"
+      "target": "zip"
     },
     "linux": {
       "target": "AppImage"
