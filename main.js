@@ -6,6 +6,40 @@ const os = require('os');
 
 let mainWindow;
 let platform = os.platform(); // 获取操作系统平台
+let currentCodePage; // 存储当前代码页的变量
+
+// 获取当前代码页
+function getCurrentCodePage(callback) {
+    if(platform != 'win32') return;
+    exec('chcp', (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Error executing chcp: ${error.message}`);
+            return;
+        }
+        //console.log(stdout);
+        // 解析输出，提取代码页
+        const codePageMatch = stdout.match(/:\s*(\d+)/); // 修改正则表达式
+        if (codePageMatch) {
+            currentCodePage = codePageMatch[1]; // 存储代码页
+            console.log(`Current code page: ${currentCodePage}`);
+            if (callback) callback(currentCodePage);
+        } else {
+            console.log('Could not determine the current code page.');
+        }
+    });
+}
+
+function decodeWithMultipleEncodings(data) {
+    const encodings = [currentCodePage,'utf8', 'gbk', 'gb2312', 'shift_jis', 'euc-kr'];
+    for (let encoding of encodings) {
+        try {
+            return iconv.decode(data, encoding);
+        } catch (error) {
+            console.warn(`Failed to decode with ${encoding}`);
+        }
+    }
+    return data.toString(); // 如果所有尝试都失败，返回原始字符串
+}
 
 function runCommand(command) {
     if (platform === 'win32') {
@@ -18,6 +52,7 @@ function runCommand(command) {
 }
 
 app.on('ready', () => {
+    getCurrentCodePage();
     mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
@@ -43,9 +78,7 @@ ipcMain.on('run-command', (event, command) => {
     // 逐行读取 stdout
     child.stdout.on('data', (data) => {
         // 将输出转换为字符串并逐行发
-        //console.log(data);
-        //const output = iconv.decode(data, 'cp936').toString('utf-8');
-        const output = data.toString();
+        const output = decodeWithMultipleEncodings(data);
         output.split('\n').forEach(line => {
             if (line) { // 只发送非空行
                 event.reply('command-output', line);
@@ -55,7 +88,7 @@ ipcMain.on('run-command', (event, command) => {
 
     // 处理错误输出
     child.stderr.on('data', (data) => {
-        const errorOutput = data.toString();
+        const errorOutput = decodeWithMultipleEncodings(data);
         errorOutput.split('\n').forEach(line => {
             if (line) { // 只发送非空行
                 event.reply('command-output', `Error: ${line}`);
